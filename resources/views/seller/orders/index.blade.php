@@ -1,49 +1,63 @@
-@extends('layouts.app')
+@extends('layouts.Seller')
 
 @section('content')
-<div class="max-w-5xl mx-auto py-8">
-    <h1 class="text-2xl font-bold mb-6">Pedidos recibidos</h1>
+<div class="max-w-7xl mx-auto px-4 py-8">
+    <h2 class="text-2xl font-bold mb-6">📨 Chat </h2>
 
-    <div class="space-y-4">
-        @foreach($orders as $order)
-            <div class="bg-white rounded-lg shadow p-4 flex justify-between items-start">
-                <div>
-                    <div class="text-sm text-gray-500">Pedido #{{ $order->id }} · {{ $order->created_at->diffForHumans() }}</div>
-                    <h3 class="text-lg font-semibold">{{ $order->buyer->name ?? 'Cliente' }}</h3>
-                    <p class="text-sm text-gray-600">Total: ${{ number_format($order->total,2) }} · Pago: {{ $order->payment_status }}</p>
-                    <p class="text-sm text-gray-600">Estado: <span class="font-medium">{{ ucfirst($order->status) }}</span></p>
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <!-- Lista de conversaciones -->
+        <div class="md:col-span-1 bg-white rounded-xl shadow">
+            <div class="p-4 font-semibold text-gray-700 border-b">Conversaciones</div>
+            <ul>
+                @foreach ($conversations as $conversation)
+                    <li class="border-b hover:bg-gray-50">
+                        <a href="{{ route('seller.chat.show', $conversation->id) }}" class="block px-4 py-3">
+                            <div class="font-bold text-indigo-700">
+                                {{ $conversation->buyer->name }} 
+                                <span class="text-sm text-gray-500">({{ $conversation->business->name ?? 'Negocio' }})</span>
+                            </div>
+                            <div class="text-sm text-gray-600 truncate">
+                                {{ $conversation->messages->last()->text ?? 'Sin mensajes' }}
+                            </div>
+                            <div class="text-xs text-blue-500 mt-1">Pedido #{{ $conversation->order->id ?? 'N/A' }}</div>
+                        </a>
+                    </li>
+                @endforeach
+            </ul>
+        </div>
 
-                    <div class="mt-2">
-                        <a href="{{ route('seller.orders.chat', $order->id) }}" class="text-blue-600 hover:underline">Abrir chat</a>
+        <!-- Panel de conversación general -->
+        <div class="md:col-span-3 bg-white rounded-xl shadow p-6">
+            <h3 class="text-xl font-semibold text-gray-800 mb-4">📋 Todas las Conversaciones</h3>
+            @forelse ($conversations as $conversation)
+                <div class="mb-6 border-b pb-4">
+                    <div class="flex justify-between items-center mb-2">
+                        <div class="text-gray-700 font-bold">
+                            {{ $conversation->buyer->name }} ({{ $conversation->business->name ?? 'Negocio' }})
+                        </div>
+                        <div class="text-sm text-gray-500">
+                            Pedido #{{ $conversation->order->id ?? 'N/A' }}
+                        </div>
                     </div>
-                </div>
 
-                <div class="flex flex-col gap-2">
-                    @if($order->status == 'pending')
-                        <form action="{{ route('seller.orders.accept', $order->id) }}" method="POST">
-                            @csrf
-                            <button class="px-4 py-2 bg-green-600 text-white rounded">Aceptar</button>
-                        </form>
-                        <form action="{{ route('seller.orders.reject', $order->id) }}" method="POST">
-                            @csrf
-                            <button class="px-4 py-2 bg-red-600 text-white rounded">Rechazar</button>
-                        </form>
-                    @elseif($order->status == 'accepted')
-                        <form action="{{ route('seller.orders.ready', $order->id) }}" method="POST">
-                            @csrf
-                            <button class="px-4 py-2 bg-yellow-500 text-white rounded">Listo para recoger</button>
-                        </form>
-                    @endif
-
-                    @if($order->status != 'completed')
-                        <form action="{{ route('seller.orders.complete', $order->id) }}" method="POST">
-                            @csrf
-                            <button class="px-4 py-2 bg-indigo-600 text-white rounded">Marcar completado</button>
-                        </form>
-                    @endif
+                    @foreach ($conversation->messages as $message)
+                        <div class="mb-2">
+                            <div class="{{ $message->sender_id == auth()->id() ? 'text-right' : 'text-left' }}">
+                                <span class="inline-block px-4 py-2 rounded-lg 
+                                {{ $message->sender_id == auth()->id() ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700' }}">
+                                    {{ $message->text }}
+                                </span>
+                                <div class="text-xs text-gray-400 mt-1">
+                                    {{ $message->sent_at->format('H:i') }}
+                                </div>
+                            </div>
+                        </div>
+                    @endforeach
                 </div>
-            </div>
-        @endforeach
+            @empty
+                <p class="text-gray-500">No hay conversaciones aún.</p>
+            @endforelse
+        </div>
     </div>
 </div>
 @endsection

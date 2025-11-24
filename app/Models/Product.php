@@ -7,9 +7,9 @@ use Illuminate\Database\Eloquent\Model;
 
 class Product extends Model
 {
-    protected $table = 'PRODUCT';
+    protected $table = 'products';
     protected $fillable = [
-        'business_id', 'name', 'slug', 'description', 'price', 'visible', 'image'
+        'business_id', 'name', 'slug', 'description', 'price', 'visible', 'image', 'category_id'
     ];
     public $timestamps = false;
 

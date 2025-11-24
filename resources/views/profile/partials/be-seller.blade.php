@@ -1,42 +1,26 @@
-<section class="space-y-6">
-    <header>
-        <h2 class="text-lg font-medium text-gray-900">
-            {{ __('Quiero registrar mi negocio') }}
-        </h2>
+<section class="rounded-xl transition  max-w-4xl mx-auto">
+    <h2 class="text-2xl font-bold text-gray-900 mb-4">¿Tienes un negocio en el Tec?</h2>
 
-        <p class="mt-1 text-sm text-gray-600">
-            {{ __('Quiero ser vendedor de RappiTec.') }}
-        </p>
-    </header>
+    <p class="text-gray-600 mb-8 max-w-2xl mx-auto">
+        Únete como vendedor y ofrece tus productos directamente desde la plataforma.
+    </p>
 
-      {{-- Botón Convertirme en vendedor --}}
-        <div class="mt-6">
-            <label class="block text-sm font-medium text-gray-700 mb-2">
-                ¿Quieres ser vendedor?
-            </label>
+    @auth
+        @if(auth()->user()->hasRole('customer'))
+        
+            <a href="{{ route('seller.business.create') }}" class="inline-block px-8 py-3 bg-green-600 text-white rounded-full font-semibold shadow hover:bg-green-700 transition">
+    Registrar mi negocio
+</a>
 
-            @if (!auth()->user()->hasRole('seller'))
-    <form action="{{ route('profile.becomeSeller') }}" method="POST">
-
-        @csrf
-        <x-primary-button>Convertirme en Vendedor</x-primary-button>
-    </form>
-@else
-    <div class="text-green-600 font-semibold">Ya eres vendedor</div>
-@endif
-
-        </div>
-        @if(auth()->user()->hasRole('seller') && auth()->user()->hasRole('customer'))
-
-    @if(session('mode') !== 'customer')
-        <form action="{{ route('profile.switch.to.customer') }}" method="POST">
-            @csrf
-            <x-primary-button class="mt-4">Cambiar a modo cliente</x-primary-button>
-        </form>
+        @else
+            <p class="text-green-600 font-semibold">Ya estás registrado como vendedor.</p>
+        @endif
     @else
-        <div class="text-green-600 mt-4">Estás navegando como cliente</div>
-    @endif
-
-@endif
-
+        <form action="{{ route('seller.business.create') }}" method="GET">
+            <button type="submit"
+                    class="px-8 py-3 bg-green-600 text-white rounded-full font-semibold shadow hover:bg-green-700 transition">
+                Regístrate como vendedor
+            </button>
+        </form>
+    @endauth
 </section>

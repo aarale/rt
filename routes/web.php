@@ -1,21 +1,40 @@
 <?php
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\CatalogController;
 use App\Http\Controllers\ClientCartController;
 use App\Http\Controllers\ClientOrderController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\Seller\SellerDashboardController;
 use App\Http\Controllers\Seller\SellerOrderController;
 use App\Http\Controllers\Seller\SellerProductController;
 use App\Http\Controllers\Seller\SellerChatController;
 use App\Http\Controllers\Seller\SellerBusinessController;
+use App\Http\Controllers\Auth\PasswordController;
+use App\Http\Controllers\PedidosController;
+use App\Http\Controllers\ChatController;
+use App\Http\Controllers\Admin\AdminDashboardController;
 
-// Cliente y catálogo
+Route::get('/', fn () => view('dashboard'))->name('dashboard');
+Route::get('/chats', fn () => view('customer.chat.show'))->name('msj');
 
-Route::get('/', fn () => view('dashboard'))->name('home');
+Route::get('/login', fn () => view('auth.login'))->name('login');
+
+Route::post('/login', [AuthenticatedSessionController::class, 'store'])->name('login');
+
+Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])->name('logout');
+
 Route::get('/catalog', [CatalogController::class, 'index'])->name('catalog.index');
+
+Route::get('/register', [RegisteredUserController::class, 'create'])->name('register');
+Route::post('/register', [RegisteredUserController::class, 'store'])->name('register');
+
+Route::get('/catalog/category/{slug}', [CatalogController::class, 'category'])->name('catalog.category');
+Route::get('/pedidos', [PedidosController::class, 'index'])->name('customer.orders.pedidos');
+
 Route::get('/carrito', [ClientCartController::class, 'view'])->name('cliente.carrito.ver');
 Route::post('/carrito/agregar', [ClientCartController::class, 'add'])->name('cliente.carrito.agregar');
 Route::post('/carrito/eliminar', [ClientCartController::class, 'remove'])->name('cliente.carrito.eliminar');
@@ -24,6 +43,16 @@ Route::get('/checkout', [ClientOrderController::class, 'checkout'])->name('clien
 Route::post('/pagar', [ClientOrderController::class, 'pagar'])->name('cliente.pagar');
 Route::get('/confirmacion', [ClientOrderController::class, 'confirm'])->name('cliente.pedido.confirmado');
 Route::post('/confirmar-pago', [ClientOrderController::class, 'confirmarPago'])->name('cliente.pago.confirmar');
+
+Route::middleware('auth')->group(function () {
+    Route::get('/chat', [ChatController::class, 'showAll'])->name('chat.index'); // Todas las conversaciones
+    Route::get('/chat/{orderId}', [ChatController::class, 'show'])->name('chat.show'); // Una conversación específica
+    Route::post('/chat/{orderId}', [ChatController::class, 'sendMessage'])->name('chat.send');
+    Route::get('/chat/todos', [ChatController::class, 'showAll'])->name('chat.all');
+
+});
+
+
 
 // Productos públicos
 Route::get('/productos', [ProductController::class, 'index'])->name('productos.index');
@@ -43,8 +72,11 @@ Route::get('/cambiar-cliente', [ProfileController::class, 'switchToCustomer'])->
 // Vendedor
 Route::get('/vendedor', [SellerDashboardController::class, 'index'])->name('seller.dashboard');
 
-Route::get('/vendedor/pedidos', [SellerOrderController::class, 'index'])->name('seller.orders');
-Route::get('/vendedor/pedidos/{id}', [SellerOrderController::class, 'show'])->name('seller.orders.show');
+Route::get('/vendedor/pedidos', [SellerOrderController::class, 'index'])->name('seller.orders.chat');
+Route::get('/vendedor/chat', [SellerOrderController::class, 'index'])->name('seller.orders.index');
+Route::get('/vendedor/chat/{id}', [SellerOrderController::class, 'show'])->name('seller.orders.show');
+
+
 Route::post('/vendedor/pedidos/{id}/aceptar', [SellerOrderController::class, 'accept'])->name('seller.orders.accept');
 Route::post('/vendedor/pedidos/{id}/rechazar', [SellerOrderController::class, 'reject'])->name('seller.orders.reject');
 Route::post('/vendedor/pedidos/{id}/listo', [SellerOrderController::class, 'ready'])->name('seller.orders.ready');
@@ -65,6 +97,19 @@ Route::get('/vendedor/negocio/crear', [SellerBusinessController::class, 'create'
 Route::post('/vendedor/negocio', [SellerBusinessController::class, 'store'])->name('seller.business.store');
 Route::get('/vendedor/negocio/editar', [SellerBusinessController::class, 'edit'])->name('seller.business.edit');
 Route::put('/vendedor/negocio', [SellerBusinessController::class, 'update'])->name('seller.business.update');
+
+
+
+// admin
+Route::get('/admin/dashboard', [AdminDashboardController::class, 'index'])->name('admin.dashboard');
+
+
+
+
+
+Route::middleware(['auth'])->group(function () {
+    Route::put('/profile/password', [ProfileController::class, 'updatePassword'])->name('password.update');
+});
 
 /*
 use Illuminate\Support\Facades\Route;

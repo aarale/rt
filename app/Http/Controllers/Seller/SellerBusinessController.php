@@ -9,17 +9,18 @@ use App\Http\Controllers\Controller;
 
 
 class SellerBusinessController extends Controller
-{
+{   
     public function create()
     {
         $user = auth()->user();
 
         if ($user->business) {
-            return redirect()->route('seller.dashboard');
+            return redirect()->route('seller.dashboard')->with('info', 'Ya tienes un negocio registrado.');
         }
 
         return view('seller.business.create');
     }
+    
 
     public function store(Request $request)
     {

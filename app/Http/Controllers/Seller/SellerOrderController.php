@@ -14,13 +14,26 @@ class SellerOrderController extends Controller
     {
         $business = Auth::user()->business;
 
-        // Pedidos del negocio del vendedor
         $orders = Order::where('business_id', $business->id)
             ->with(['buyer','orderItems.product'])
             ->orderBy('created_at', 'desc')
             ->get();
+        $user = Auth::user();
 
-        return view('seller.orders.index', compact('orders'));
+    // Si el usuario es vendedor, mostramos conversaciones donde él es el vendedor
+    if ($user->hasRole('seller')) {
+        $conversations = Conversation::with('buyer', 'order')
+            ->where('seller_id', $user->id)
+            ->latest()
+            ->get();
+    } else {
+        // Si es comprador, mostramos donde él es el comprador
+        $conversations = Conversation::with('seller', 'order')
+            ->where('buyer_id', $user->id)
+            ->latest()
+            ->get();
+    }
+        return view('seller.orders.index', compact('orders', 'conversations'));
     }
 
     public function show($id)

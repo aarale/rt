@@ -3,20 +3,58 @@
 namespace App\Http\Controllers;
 
 use App\Models\Product;
-
+use App\Models\Category;
+use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 class CatalogController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $products = Product::with('business')->where('visible', true)->get();
-$products = Product::with('business', 'inventory')
-    ->whereHas('inventory', function($q) {
-        $q->where('stock', '>', 0);
-    })
-    ->where('visible', true)
-    ->get();
+        $query = Product::with('business', 'inventory')
+            ->whereHas('inventory', fn($q) => $q->where('stock', '>', 0))
+            ->where('visible', true);
 
-        return view('catalog.index', compact('products'));
+        if ($search = $request->input('search')) {
+            $query->where('name', 'like', "%{$search}%");
+        }
+
+        if ($category = $request->input('category')) {
+            $query->whereHas('categories', fn($q) => $q->where('slug', $category));
+        }
+
+        $products = $query->get();
+        $categories = Category::all();
+        $oneWeekAgo = Carbon::now()->subWeek();
+        $topProducts = Product::with('business')
+            ->whereHas('orderItems', fn($q) => $q->where('created_at', '>=', $oneWeekAgo))
+            ->withCount(['orderItems as sold_count' => fn($q) => $q->where('created_at', '>=', $oneWeekAgo)])
+            ->orderByDesc('sold_count')
+            ->take(8)
+            ->get();
+
+        return view('catalog.index', compact('products', 'categories', 'topProducts'));
     }
-    
+
+
+
+
+    public function category($slug)
+{
+    $category = Category::where('slug', $slug)->firstOrFail();
+
+    $products = Product::with('business', 'inventory')
+        ->whereHas('inventory', fn($q) => $q->where('stock', '>', 0))
+        ->where('visible', true)
+        ->whereHas('categories', fn($q) => $q->where('slug', $slug))
+        ->get();
+ $oneWeekAgo = Carbon::now()->subWeek();
+        $topProducts = Product::with('business')
+            ->whereHas('orderItems', fn($q) => $q->where('created_at', '>=', $oneWeekAgo))
+            ->withCount(['orderItems as sold_count' => fn($q) => $q->where('created_at', '>=', $oneWeekAgo)])
+            ->orderByDesc('sold_count')
+            ->take(8)
+            ->get();
+
+        return view('catalog.category', compact('products', 'category', 'topProducts'));
+}
 }

@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Category extends Model
 {
-    protected $table = 'CATEGORY';
+    protected $table = 'categories';
     public $timestamps = false;
     protected $fillable = ['name', 'slug'];
 
@@ -15,4 +15,14 @@ class Category extends Model
     {
         return $this->belongsToMany(Product::class, 'PRODUCT_CATEGORY', 'category_id', 'product_id');
     }
+    public function messages()
+{
+    return $this->hasMany(Message::class);
+}
+
+public function order()
+{
+    return $this->belongsTo(Order::class);
+}
+
 }

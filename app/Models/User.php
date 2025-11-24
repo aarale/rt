@@ -12,16 +12,18 @@ use App\Models\Role;
 class User extends Authenticatable implements MustVerifyEmail
 {
     use HasApiTokens, HasFactory, Notifiable;
-    protected $table = 'USERS';
+    protected $table = 'users';
     protected $fillable = [
         'name', 'lastname', 'bdate', 'ncontrol', 'email', 'phone', 'password'
     ];
 
     public $timestamps = false;
+    
     public function roles()
     {
-        return $this->belongsToMany(Role::class, 'USER_ROLE', 'user_id', 'role_id');
+        return $this->belongsToMany(Role::class, 'user_role', 'user_id', 'role_id');
     }
+    
     public function hasRole($roleName)
 {
     return $this->roles()->where('name', $roleName)->exists();

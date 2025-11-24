@@ -7,6 +7,8 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 use App\Models\Product;
 use App\Models\Inventory;
+use App\Models\Category;
+
 
 class SellerProductController extends Controller
 {
@@ -17,44 +19,48 @@ class SellerProductController extends Controller
         return view('seller.products.index', compact('products'));
     }
 
-    public function create()
-    {
-        return view('seller.products.create');
+    public function create(){
+        $categories = Category::all();
+    return view('seller.products.create', compact('categories'));
+
     }
 
     public function store(Request $request)
-    {
-        $request->validate([
-            'name'        => 'required|max:150',
-            'slug'        => 'required|max:180|unique:PRODUCT,slug',
-            'description' => 'nullable|max:255',
-            'price'       => 'required|numeric|min:0',
-            'visible'     => 'boolean',
-            'image'       => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
-            'stock'       => 'required|integer|min:0'
-        ]);
+{
+    $request->validate([
+        'name'        => 'required|max:150',
+        'slug'        => 'required|max:180|unique:products,slug',
+        'description' => 'nullable|max:255',
+        'price'       => 'required|numeric|min:0',
+        'visible'     => 'boolean',
+        'image'       => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
+        'stock'       => 'required|integer|min:0',
+        'category_ids' => 'required|array',
+        'category_ids.*' => 'exists:categories,id',
+    ]);
 
-        $data = $request->all();
-        $data['business_id'] = Auth::user()->business->id;
+    $data = $request->except('category_ids', 'stock');
+    $data['business_id'] = Auth::user()->business->id;
 
-        if ($request->hasFile('image')) {
-            $data['image'] = $request->file('image')->store('products', 'public');
-        }
-
-        // <<< AQUÍ VA EL FIX >>>
-        $product = Product::create($data);
-
-        // Crear inventario
-        Inventory::create([
-            'product_id' => $product->id,
-            'sku' => strtoupper('SKU-' . uniqid()),
-            'stock' => $request->stock,
-            'low_stock_threshold' => 1
-        ]);
-
-        return redirect()->route('seller.products.index')
-            ->with('success', 'Producto creado correctamente.');
+    if ($request->hasFile('image')) {
+        $data['image'] = $request->file('image')->store('products', 'public');
     }
+
+    $product = Product::create($data);
+
+    $products->categories()->sync($request->category_ids);
+
+    Inventory::create([
+        'product_id' => $product->id,
+        'sku' => strtoupper('SKU-' . uniqid()),
+        'stock' => $request->stock,
+        'low_stock_threshold' => 1
+    ]);
+
+    return redirect()->route('seller.products.index')
+        ->with('success', 'Producto creado correctamente.');
+}
+
 
     public function show(Product $product)
     {
@@ -76,7 +82,7 @@ class SellerProductController extends Controller
 
         $request->validate([
             'name'        => 'required|max:150',
-            'slug'        => 'required|max:180|unique:PRODUCT,slug,' . $product->id,
+            'slug'        => 'required|max:180|unique:products,slug,' . $product->id,
             'description' => 'nullable|max:255',
             'price'       => 'required|numeric|min:0',
             'visible'     => 'boolean',
@@ -90,10 +96,10 @@ class SellerProductController extends Controller
             $data['image'] = $request->file('image')->store('products', 'public');
         }
 
-        $product->update($data);
+       $product->update($data);
 
-        // Actualizar stock
-        if (!$product->inventory) {
+// Actualizar stock
+if (!$product->inventory) {
     $product->inventory()->create([
         'sku' => strtoupper('SKU-' . uniqid()),
         'stock' => $request->stock,
@@ -105,7 +111,10 @@ class SellerProductController extends Controller
     ]);
 }
 
-       
+// ✅ Actualizar categorías
+if ($request->has('category_ids')) {
+    $product->categories()->sync($request->category_ids);
+}
 
         return redirect()->route('seller.products.index')
             ->with('success', 'Producto actualizado correctamente.');

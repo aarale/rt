@@ -27,7 +27,7 @@ class RouteServiceProvider extends ServiceProvider
 
     return '/catalog';
 }
-public const HOME = '/redirect-by-role';
+public const HOME = '/catalog';
 
 
     /**
