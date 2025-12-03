@@ -24,3 +24,6 @@ Broadcast::channel('conversation.{conversationId}', function ($user, $conversati
         })->exists();
 });
 
+Broadcast::channel('chat.{conversationId}', function ($user) {
+    return true; 
+});

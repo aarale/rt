@@ -7,11 +7,21 @@ use Illuminate\Database\Eloquent\Model;
 
 class Product extends Model
 {
+    use HasFactory;
+
     protected $table = 'products';
+
     protected $fillable = [
-        'business_id', 'name', 'slug', 'description', 'price', 'visible', 'image', 'category_id'
+        'business_id',
+        'name',
+        'slug',
+        'description',
+        'price',
+        'visible',
+        'image',
     ];
-    public $timestamps = false;
+
+    public $timestamps = true;
 
     public function business()
     {
@@ -20,13 +30,13 @@ class Product extends Model
 
     public function categories()
     {
-        return $this->belongsToMany(Category::class, 'PRODUCT_CATEGORY', 'product_id', 'category_id');
+        return $this->belongsToMany(Category::class, 'product_category', 'product_id', 'category_id');
     }
 
     public function inventory()
-{
-    return $this->hasOne(\App\Models\Inventory::class, 'product_id');
-}
+    {
+        return $this->hasOne(\App\Models\Inventory::class, 'product_id');
+    }
 
     public function orderItems()
     {

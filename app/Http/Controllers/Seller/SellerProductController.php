@@ -5,10 +5,10 @@ namespace App\Http\Controllers\Seller;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 use App\Models\Product;
-use App\Models\Inventory;
 use App\Models\Category;
-
+use App\Models\Inventory;
 
 class SellerProductController extends Controller
 {
@@ -19,17 +19,18 @@ class SellerProductController extends Controller
         return view('seller.products.index', compact('products'));
     }
 
-    public function create(){
+    public function create()
+    {
         $categories = Category::all();
-    return view('seller.products.create', compact('categories'));
+return view('seller.products.create', compact('categories'));
 
     }
 
-    public function store(Request $request)
+public function store(Request $request)
 {
     $request->validate([
         'name'        => 'required|max:150',
-        'slug'        => 'required|max:180|unique:products,slug',
+        'slug'        => 'nullable|max:180|unique:products,slug',
         'description' => 'nullable|max:255',
         'price'       => 'required|numeric|min:0',
         'visible'     => 'boolean',
@@ -42,13 +43,18 @@ class SellerProductController extends Controller
     $data = $request->except('category_ids', 'stock');
     $data['business_id'] = Auth::user()->business->id;
 
+    // slug automático
+    $data['slug'] = $request->filled('slug')
+        ? $request->slug
+        : Str::slug($request->name);
+
     if ($request->hasFile('image')) {
         $data['image'] = $request->file('image')->store('products', 'public');
     }
 
     $product = Product::create($data);
 
-    $products->categories()->sync($request->category_ids);
+    $product->categories()->sync($request->category_ids);
 
     Inventory::create([
         'product_id' => $product->id,
@@ -57,7 +63,7 @@ class SellerProductController extends Controller
         'low_stock_threshold' => 1
     ]);
 
-    return redirect()->route('seller.products.index')
+    return redirect()->route('seller.products.index') 
         ->with('success', 'Producto creado correctamente.');
 }
 
@@ -96,10 +102,10 @@ class SellerProductController extends Controller
             $data['image'] = $request->file('image')->store('products', 'public');
         }
 
-       $product->update($data);
+        $product->update($data);
 
-// Actualizar stock
-if (!$product->inventory) {
+        // Actualizar stock
+        if (!$product->inventory) {
     $product->inventory()->create([
         'sku' => strtoupper('SKU-' . uniqid()),
         'stock' => $request->stock,
@@ -110,11 +116,11 @@ if (!$product->inventory) {
         'stock' => $request->stock
     ]);
 }
+    $data['slug'] = $request->filled('slug')
+    ? $request->slug
+    : Str::slug($request->name);
 
-// ✅ Actualizar categorías
-if ($request->has('category_ids')) {
-    $product->categories()->sync($request->category_ids);
-}
+       
 
         return redirect()->route('seller.products.index')
             ->with('success', 'Producto actualizado correctamente.');

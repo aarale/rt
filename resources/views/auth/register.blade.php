@@ -1,11 +1,15 @@
 <x-guest-layout>
     <div class="min-h-screen flex">
        
-        <div class="hidden w-full  lg:flex w-1/2 bg-sky-600 text-align:center  text-white p-10 relative">
-            <div class="space-y-6">
-                <img src="{{ asset('images/logorappitec.png') }}" alt="Rappitec" class="w-50% h-50% ">
+<div class="hidden lg:flex w-1/2 bg-sky-600 justify-center items-center text-white p-10">
+            <div class="text-center space-y-1">
+                <a href="/"> <img src="{{ asset('images/logorappitec.png') }}" alt="Rappitec" class="w-50% h-50% ">
+</a>
+
             </div>
         </div>
+
+
         <div class="w-full lg:w-1/2 bg-white flex items-center justify-center px-6 py-12">
             <form method="POST" action="{{ route('register') }}" class="w-full max-w-md space-y-1">
                 @csrf
@@ -33,7 +37,14 @@
                 <x-text-input id="password" class="w-full" type="password" name="password" required />
 
                 <x-input-label for="password_confirmation" :value="__('Confirmar contraseña')" />
+
                 <x-text-input id="password_confirmation" class="w-full" type="password" name="password_confirmation" required />
+
+               <div class="flex items-center gap-2">
+                <input type="checkbox" id="my-checkbox" class="appearance-none w-4 h-4 border-2 border-gray-400 rounded-sm checked:bg-blue-500 checked:border-blue-500" />
+            <label for="my-checkbox" class="text-gray-700"><a href="{{ route('aviso') }}">Aviso de privacidad</a></label>
+             </div>
+
 
                 <div class="flex justify-between items-center mt-4">
                     <a href="{{ route('login') }}" class="text-sm text-gray-500 hover:underline">¿Ya tienes cuenta?</a>

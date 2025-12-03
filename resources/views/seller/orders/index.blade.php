@@ -1,63 +1,66 @@
-@extends('layouts.Seller')
+@extends('layouts.seller')
 
 @section('content')
-<div class="max-w-7xl mx-auto px-4 py-8">
-    <h2 class="text-2xl font-bold mb-6">📨 Chat </h2>
+<div class="max-w-7xl mx-auto px-6 py-10">
 
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <!-- Lista de conversaciones -->
-        <div class="md:col-span-1 bg-white rounded-xl shadow">
-            <div class="p-4 font-semibold text-gray-700 border-b">Conversaciones</div>
-            <ul>
-                @foreach ($conversations as $conversation)
-                    <li class="border-b hover:bg-gray-50">
-                        <a href="{{ route('seller.chat.show', $conversation->id) }}" class="block px-4 py-3">
-                            <div class="font-bold text-indigo-700">
-                                {{ $conversation->buyer->name }} 
-                                <span class="text-sm text-gray-500">({{ $conversation->business->name ?? 'Negocio' }})</span>
-                            </div>
-                            <div class="text-sm text-gray-600 truncate">
-                                {{ $conversation->messages->last()->text ?? 'Sin mensajes' }}
-                            </div>
-                            <div class="text-xs text-blue-500 mt-1">Pedido #{{ $conversation->order->id ?? 'N/A' }}</div>
-                        </a>
-                    </li>
-                @endforeach
-            </ul>
+    {{-- Título --}}
+    <h1 class="text-2xl font-bold text-gray-800 mb-6">
+        🧾 Pedidos Recibidos
+    </h1>
+
+   
+    @if($orders->isEmpty())
+        <div class="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 rounded">
+            No tienes pedidos aún.
         </div>
+    @else
 
-        <!-- Panel de conversación general -->
-        <div class="md:col-span-3 bg-white rounded-xl shadow p-6">
-            <h3 class="text-xl font-semibold text-gray-800 mb-4">📋 Todas las Conversaciones</h3>
-            @forelse ($conversations as $conversation)
-                <div class="mb-6 border-b pb-4">
-                    <div class="flex justify-between items-center mb-2">
-                        <div class="text-gray-700 font-bold">
-                            {{ $conversation->buyer->name }} ({{ $conversation->business->name ?? 'Negocio' }})
-                        </div>
-                        <div class="text-sm text-gray-500">
-                            Pedido #{{ $conversation->order->id ?? 'N/A' }}
-                        </div>
-                    </div>
+        {{-- Tabla --}}
+        <div class="bg-white shadow-md rounded-lg overflow-hidden">
+            <table class="min-w-full leading-normal">
+                <thead>
+                    <tr class="bg-sky-600 text-white">
+                        <th class="px-5 py-3 text-left text-sm font-semibold">ID</th>
+                        <th class="px-5 py-3 text-left text-sm font-semibold">Cliente</th>
+                        <th class="px-5 py-3 text-left text-sm font-semibold">Total</th>
+                        <th class="px-5 py-3 text-left text-sm font-semibold">Fecha</th>
+                        <th class="px-5 py-3 text-left text-sm font-semibold">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody class="text-gray-700">
 
-                    @foreach ($conversation->messages as $message)
-                        <div class="mb-2">
-                            <div class="{{ $message->sender_id == auth()->id() ? 'text-right' : 'text-left' }}">
-                                <span class="inline-block px-4 py-2 rounded-lg 
-                                {{ $message->sender_id == auth()->id() ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700' }}">
-                                    {{ $message->text }}
-                                </span>
-                                <div class="text-xs text-gray-400 mt-1">
-                                    {{ $message->sent_at->format('H:i') }}
-                                </div>
-                            </div>
-                        </div>
+                    @foreach($orders as $order)
+                        <tr class="border-t">
+                            <td class="px-5 py-4 font-medium">
+                                #{{ $order->id }}
+                            </td>
+
+                            <td class="px-5 py-4">
+                                {{ $order->customer_name ?? 'Cliente' }}
+                            </td>
+
+                            <td class="px-5 py-4 font-semibold text-green-600">
+                                ${{ number_format($order->total, 2) }}
+                            </td>
+
+                            <td class="px-5 py-4 text-sm">
+                                {{ $order->created_at->format('d/m/Y H:i') }}
+                            </td>
+
+                            <td class="px-5 py-4">
+                                <a href="{{ route('seller.orders.show', $order->id) }}"
+                                   class="px-4 py-2 bg-sky-600 text-white rounded-lg text-sm hover:bg-sky-700">
+                                    Ver Detalle
+                                </a>
+                            </td>
+                        </tr>
                     @endforeach
-                </div>
-            @empty
-                <p class="text-gray-500">No hay conversaciones aún.</p>
-            @endforelse
+
+                </tbody>
+            </table>
         </div>
-    </div>
+
+    @endif
+
 </div>
 @endsection

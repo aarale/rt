@@ -9,20 +9,21 @@ class Category extends Model
 {
     protected $table = 'categories';
     public $timestamps = false;
+
     protected $fillable = ['name', 'slug'];
 
     public function products()
     {
-        return $this->belongsToMany(Product::class, 'PRODUCT_CATEGORY', 'category_id', 'product_id');
+        return $this->belongsToMany(Product::class, 'product_category', 'category_id', 'product_id');
     }
+
     public function messages()
-{
-    return $this->hasMany(Message::class);
-}
+    {
+        return $this->hasMany(Message::class);
+    }
 
-public function order()
-{
-    return $this->belongsTo(Order::class);
-}
-
+    public function order()
+    {
+        return $this->belongsTo(Order::class);
+    }
 }

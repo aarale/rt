@@ -57,4 +57,27 @@ class CatalogController extends Controller
 
         return view('catalog.category', compact('products', 'category', 'topProducts'));
 }
+
+public function byCategory($slug)
+{
+    $category = Category::where('slug', $slug)->firstOrFail();
+        $categories = Category::all();
+
+    $products = Product::whereHas('categories', function ($q) use ($category) {
+        $q->where('categories.id', $category->id);
+
+    })->with('inventory')->where('visible', 1)->get();
+
+    return view('catalog.category', compact('products', 'category','categories'));
+}
+public function show($slug)
+{
+    $product = Product::with(['inventory', 'categories', 'business'])
+        ->where('slug', $slug)
+        ->where('visible', 1)
+        ->firstOrFail();
+
+    return view('catalog.show', compact('product'));
+}
+
 }

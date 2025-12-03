@@ -37,7 +37,7 @@
 
 <section class="text-center mt-40 px-6">
     <h1 class="text-5xl md:text-6xl font-extrabold text-gray-900 leading-tight">
-        Conecta con los negocios del Tec
+        Conecta con los negocios del ITLaguna 🐰
     </h1>
     <p class="mt-6 text-lg text-gray-600 max-w-2xl mx-auto">
         Haz pedidos rápidos, paga en la app y recoge cuando tú quieras.

@@ -1,64 +1,54 @@
 <?php
-
 namespace App\Http\Controllers\Seller;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
-use App\Models\Order;
 use App\Models\Conversation;
 use App\Models\Message;
+use Illuminate\Support\Facades\Auth;
+use App\Events\NewMessage;
 
 class SellerChatController extends Controller
 {
-    public function show($orderId)
+    public function index()
     {
-        $order = Order::findOrFail($orderId);
+        $userId = auth()->id();
 
-        if ($order->seller_id !== Auth::id()) abort(403);
+        $conversations = Conversation::where('buyer_id', $userId)
+            ->orWhere('seller_id', $userId)
+            ->with('order')
+            ->latest()
+            ->get();
 
-        // Obtener o crear conversación
-        $conversation = Conversation::firstOrCreate([
-            'order_id'  => $order->id,
-            'buyer_id'  => $order->buyer_id,
-            'seller_id' => $order->seller_id,
-        ]);
-
-        $messages = $conversation->messages()->with('sender')->orderBy('sent_at')->get();
-
-        return view('seller.chat.show', compact('order', 'conversation', 'messages'));
-        //return view('client.chat.box', compact('conversation'));
+        return view('chat.index', compact('conversations'));
     }
 
-    public function send(Request $request, $orderId)
+    public function show($conversationId)
     {
-        $request->validate([
-            'message' => 'required|string|max:2000',
-            'attachment' => 'nullable|image|max:2048'
-        ]);
+        $conversation = Conversation::with('messages.sender', 'order')
+            ->findOrFail($conversationId);
 
-        $order = Order::findOrFail($orderId);
+        $messages = $conversation->messages;
 
-        if ($order->seller_id !== Auth::id()) abort(403);
-
-        $conversation = Conversation::firstOrCreate([
-            'order_id'  => $order->id,
-            'buyer_id'  => $order->buyer_id,
-            'seller_id' => $order->seller_id,
-        ]);
-
-        $data = [
-            'conversation_id' => $conversation->id,
-            'sender_id' => Auth::id(),
-            'text' => $request->message
-        ];
-
-        if ($request->hasFile('attachment')) {
-            $data['attachment_url'] = $request->file('attachment')->store('chat', 'public');
-        }
-
-        Message::create($data);
-
-        return back();
+        return view('chat.show', compact('conversation', 'messages'));
     }
+public function sendMessage(Request $request, $conversationId)
+{
+    $request->validate([
+        'message' => 'required|string|max:2000'
+    ]);
+
+    $conversation = Conversation::findOrFail($conversationId);
+
+    $msg = Message::create([
+        'conversation_id' => $conversation->id,
+        'sender_id' => Auth::id(),
+        'text' => $request->message,
+    ]);
+
+    broadcast(new NewMessage($msg))->toOthers();
+
+    return response()->json(['success' => true]);
+}
+
 }

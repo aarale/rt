@@ -1,7 +1,9 @@
 <?php
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
+
 use App\Http\Controllers\CatalogController;
+
 use App\Http\Controllers\ClientCartController;
 use App\Http\Controllers\ClientOrderController;
 use App\Http\Controllers\ProductController;
@@ -15,11 +17,21 @@ use App\Http\Controllers\Seller\SellerChatController;
 use App\Http\Controllers\Seller\SellerBusinessController;
 use App\Http\Controllers\Auth\PasswordController;
 use App\Http\Controllers\PedidosController;
-use App\Http\Controllers\ChatController;
 use App\Http\Controllers\Admin\AdminDashboardController;
 
 Route::get('/', fn () => view('dashboard'))->name('dashboard');
 Route::get('/chats', fn () => view('customer.chat.show'))->name('msj');
+Route::get('/privacidad', fn () => view('auth/privacity'))->name('aviso');
+
+Route::middleware(['auth'])->group(function () {
+    Route::get('/chat', [SellerChatController::class, 'index'])->name('chat.index');
+    Route::get('/chat/{conversationId}', [SellerChatController::class, 'show'])->name('chat.show');
+    Route::post('/chat/{conversationId}', [SellerChatController::class, 'sendMessage'])->name('chat.send');
+});
+
+
+
+
 
 Route::get('/login', fn () => view('auth.login'))->name('login');
 
@@ -44,13 +56,11 @@ Route::post('/pagar', [ClientOrderController::class, 'pagar'])->name('cliente.pa
 Route::get('/confirmacion', [ClientOrderController::class, 'confirm'])->name('cliente.pedido.confirmado');
 Route::post('/confirmar-pago', [ClientOrderController::class, 'confirmarPago'])->name('cliente.pago.confirmar');
 
-Route::middleware('auth')->group(function () {
-    Route::get('/chat', [ChatController::class, 'showAll'])->name('chat.index'); // Todas las conversaciones
-    Route::get('/chat/{orderId}', [ChatController::class, 'show'])->name('chat.show'); // Una conversación específica
-    Route::post('/chat/{orderId}', [ChatController::class, 'sendMessage'])->name('chat.send');
-    Route::get('/chat/todos', [ChatController::class, 'showAll'])->name('chat.all');
 
-});
+Route::get('/catalogo/categoria/{slug}', [CatalogController::class, 'byCategory'])
+    ->name('catalog.category');
+Route::get('/producto/{slug}', [CatalogController::class, 'show'])
+    ->name('product.show');
 
 
 
@@ -72,8 +82,8 @@ Route::get('/cambiar-cliente', [ProfileController::class, 'switchToCustomer'])->
 // Vendedor
 Route::get('/vendedor', [SellerDashboardController::class, 'index'])->name('seller.dashboard');
 
-Route::get('/vendedor/pedidos', [SellerOrderController::class, 'index'])->name('seller.orders.chat');
-Route::get('/vendedor/chat', [SellerOrderController::class, 'index'])->name('seller.orders.index');
+Route::get('/vendedor/pedidos', [SellerOrderController::class, 'index'])->name('seller.orders.index');
+// Route::get('/vendedor/chat', [SellerOrderController::class, 'index'])->name('seller.orders.index');
 Route::get('/vendedor/chat/{id}', [SellerOrderController::class, 'show'])->name('seller.orders.show');
 
 
@@ -111,6 +121,26 @@ Route::middleware(['auth'])->group(function () {
     Route::put('/profile/password', [ProfileController::class, 'updatePassword'])->name('password.update');
 });
 
+Route::get('/email/verify', function () {
+    return view('auth.verify-email');
+})->middleware('auth')->name('verification.notice');
+
+Route::get('/email/verify/{id}/{hash}', function (EmailVerificationRequest $request) {
+    $request->fulfill();
+    return redirect('/dashboard');
+})->middleware(['auth', 'signed'])->name('verification.verify');
+
+Route::post('/email/verification-notification', function (Request $request) {
+    $request->user()->sendEmailVerificationNotification();
+return back()->with('status', 'verification-link-sent');
+})->middleware(['auth', 'throttle:6,1'])->name('verification.send');
+
+
+Broadcast::channel('chat.{conversationId}', function ($user, $conversationId) {
+    return true; 
+});
+
+
 /*
 use Illuminate\Support\Facades\Route;
 use App\Providers\RouteServiceProvider;
@@ -128,20 +158,6 @@ use App\Http\Controllers\Seller\SellerOrderController;
 use App\Http\Controllers\Seller\SellerChatController;
 use App\Http\Controllers\Seller\SellerBusinessController;
 use App\Http\Controllers\Seller\SellerProductController;
-
-Route::get('/email/verify', function () {
-    return view('auth.verify-email');
-})->middleware('auth')->name('verification.notice');
-
-Route::get('/email/verify/{id}/{hash}', function (EmailVerificationRequest $request) {
-    $request->fulfill();
-    return redirect('/dashboard');
-})->middleware(['auth', 'signed'])->name('verification.verify');
-
-Route::post('/email/verification-notification', function (Request $request) {
-    $request->user()->sendEmailVerificationNotification();
-return back()->with('status', 'verification-link-sent');
-})->middleware(['auth', 'throttle:6,1'])->name('verification.send');
 
 Route::get('/', fn () => view('dashboard'))->name('home');
 

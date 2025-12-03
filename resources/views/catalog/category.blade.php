@@ -2,7 +2,7 @@
     $emojiMap = [
         'comida' => '🍔',
         'electronica' => '💻',
-        'bebidas' => '​🍺​',
+        'bebidas' => '​🥤​',
         'accesorios' => '🛍️',
         'reposteria' => '🧁',
         'servicios' => '🔥',
@@ -50,6 +50,7 @@
                             <button type="submit" class="w-full bg-blue-600 text-white rounded-full py-2 hover:bg-blue-700">
                                 🛒 Comprar ahora
                             </button>
+                            
                         </form>
                     </div>
                 </div>

@@ -17,7 +17,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'name', 'lastname', 'bdate', 'ncontrol', 'email', 'phone', 'password'
     ];
 
-    public $timestamps = false;
+    //public $timestamps = false;
     
     public function roles()
     {

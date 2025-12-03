@@ -20,7 +20,7 @@
     $emojiMap = [
         'comida' => '🍔',
         'electronica' => '💻',
-        'bebidas' => '​🍺​',
+        'bebidas' => '​🥤​',
         'accesorios' => '🛍️',
         'reposteria' => '🧁',
         'servicios' => '🔥',
@@ -54,7 +54,9 @@
 
     <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6 mt-10">
         @foreach ($products as $product)
-            <div class="bg-white rounded-xl shadow-md hover:shadow-xl transition transform hover:-translate-y-1">
+        <a href="{{ route('product.show', $product->slug) }}"   class="block bg-white rounded-xl shadow hover:shadow-xl transition transform hover:-translate-y-1">
+       
+            <div>
                 @if($product->image)
                     <img src="{{ asset('storage/' . $product->image) }}" alt="{{ $product->name }}" class="w-full h-40 object-cover rounded-t-xl">
                 @else
@@ -66,8 +68,8 @@
                     <p class="text-sm text-gray-500">{{ $product->business->name ?? 'Negocio desconocido' }}</p>
                     <p class="text-gray-700 mt-2 text-sm">{{ $product->description }}</p>
                     <p class="text-green-600 font-bold text-xl mt-4">${{ number_format($product->price, 2) }}</p>
-
-                    <form action="{{ route('cliente.carrito.agregar') }}" method="POST" class="mt-4">
+    
+                    <form action="{{ route('cliente.carrito.agregar') }}" method="POST" class="mt-">
                         @csrf
                         <input type="hidden" name="product_id" value="{{ $product->id }}">
                         <input type="hidden" name="product_name" value="{{ $product->name }}">
@@ -77,20 +79,25 @@
                         <input type="hidden" name="business_id" value="{{ $product->business_id }}">
                         <input type="hidden" name="inventory_id" value="{{ $product->inventory->id }}">
                         <input type="hidden" name="quantity" value="1">
-
+                 
                         <button type="submit" class="w-full bg-blue-600 text-white rounded-full py-2 hover:bg-blue-700">
                             🛒 Comprar ahora
                         </button>
                     </form>
                 </div>
+                
             </div>
+            </a>
         @endforeach
     </div>
     
 @if($topProducts->isNotEmpty())
 <div class="max-w-7xl mx-auto px-6 py-10 mt-12">
+    
     <h2 class="text-2xl font-bold text-gray-800 mb-6">🔥 Más Vendidos Esta Semana</h2>
     <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6">
+                <a href="{{ route('product.show', $product->slug) }}"   class="block bg-white rounded-xl shadow hover:shadow-xl transition transform hover:-translate-y-1">
+
         @foreach ($topProducts as $product)
             <div class="bg-white rounded-xl shadow hover:shadow-md transition">
                 <img src="{{ asset('storage/' . ($product->image ?? 'placeholder.jpg')) }}" class="w-full h-32 object-cover rounded-t-xl" alt="{{ $product->name }}">

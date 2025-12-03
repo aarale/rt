@@ -35,9 +35,10 @@ class RegisteredUserController extends Controller
         'lastname' => ['required', 'string', 'max:255'],
         'bdate' => ['required', 'date'],
         'ncontrol' => ['required', 'string', 'max:255'],
-        'email' => ['required', 'string', 'email', 'max:255', 'unique:Users'],
+        'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email'],
         'phone' => ['required', 'string', 'max:20'],
         'password' => ['required', 'confirmed', Rules\Password::defaults()],
+      //  'my-checkbox' => ['accepted'],
     ]);
 
     $user = User::create([
@@ -48,11 +49,12 @@ class RegisteredUserController extends Controller
         'email' => $request->email,
         'phone' => $request->phone,
         'password' => Hash::make($request->password),
-
     ]);
+
     $user->assignRole('customer');
     Auth::login($user);
-    $user->sendEmailVerificationNotification();
+   $user->sendEmailVerificationNotification();
+
     return redirect()->route('verification.notice');
 }
 

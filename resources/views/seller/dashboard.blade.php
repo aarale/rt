@@ -60,13 +60,13 @@
                 <p class="text-sm mt-2">Crea, edita y administra tus productos</p>
             </a>
 
-            <a href="{{ route('seller.orders.chat') }}"
+            <a href="{{ route('seller.orders.index') }}"
                class="bg-green-600 hover:bg-green-700 text-white p-6 rounded-lg shadow text-center">
                 <h3 class="text-xl font-semibold">Pedidos Recibidos</h3>
                 <p class="text-sm mt-2">Administra y responde pedidos</p>
             </a>
 
-            <a href="{{ route('seller.orders.index') }}" 
+            <a href="{{ route('chat.index') }}" 
                class="bg-yellow-500 hover:bg-yellow-600 text-white p-6 rounded-lg shadow text-center">
                 <h3 class="text-xl font-semibold">Chat</h3>
                 <p class="text-sm mt-2">Comunícate con compradores</p>
