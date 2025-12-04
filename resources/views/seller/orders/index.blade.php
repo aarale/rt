@@ -25,6 +25,7 @@
                         <th class="px-5 py-3 text-left text-sm font-semibold">Total</th>
                         <th class="px-5 py-3 text-left text-sm font-semibold">Fecha</th>
                         <th class="px-5 py-3 text-left text-sm font-semibold">Acciones</th>
+                        <th class="px-5 py-3 text-left text-sm font-semibold">Codigo</th>
                     </tr>
                 </thead>
                 <tbody class="text-gray-700">
@@ -53,7 +54,13 @@
                                     Ver Detalle
                                 </a>
                             </td>
+                            <td><a href="{{ route('seller.orders.validar', $order->id) }}"
+   class="px-4 py-2 bg-green-600 text-white rounded-lg">
+    Validar entrega
+</a>
+</td>
                         </tr>
+
                     @endforeach
 
                 </tbody>

@@ -10,7 +10,7 @@ class Order extends Model
     protected $table = 'ORDERS';
     protected $fillable = [
         'buyer_id', 'seller_id', 'business_id', 'status',
-        'total', 'payment_status', 'pickup_time', 'place_type'
+        'total', 'payment_status', 'pickup_time', 'place_type','delivery_code',
     ];
     public $timestamps = true;
 

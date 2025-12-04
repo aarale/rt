@@ -10,6 +10,8 @@ use App\Models\Payment;
 use App\Models\OrderItem;
 use App\Models\Inventory;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
+
 
 class ClientOrderController extends Controller
 {
@@ -17,6 +19,8 @@ class ClientOrderController extends Controller
     {
         return view('customer.orders.checkout');
     }
+
+
 
     public function pagar(Request $request)
 {
@@ -31,10 +35,16 @@ class ClientOrderController extends Controller
             ->with('error', 'El carrito está vacío.');
     }
 
-    // TOTAL REAL
     $total = collect($cart)->sum(fn($i) => $i['price'] * $i['quantity']);
 
-    // Datos del negocio (todos los productos son del mismo)
+    $commission = 0;
+
+    if ($request->payment_method === 'card') {
+        $commission = $total * 0.025; // 2.5%
+    }
+
+    $finalTotal = $total + $commission;
+
     $first = reset($cart);
 
     $order = Order::create([
@@ -42,14 +52,13 @@ class ClientOrderController extends Controller
         'seller_id'   => $first['seller_id'],
         'business_id' => $first['business_id'],
         'status'      => 'pending',
-        'total'       => $total,
-        'place_type'  => 'pickup'
+        'total'       => $finalTotal,
+        'place_type'  => 'pickup',
+'delivery_code' => rand(100000, 999999),
+
     ]);
 
-    // GUARDAR ITEMS DEL PEDIDO
     foreach ($cart as $productId => $item) {
-
-        // Buscar inventario real por producto
         $inventory = Inventory::where('product_id', $productId)->first();
 
         OrderItem::create([
@@ -61,30 +70,28 @@ class ClientOrderController extends Controller
             'subtotal'     => $item['price'] * $item['quantity']
         ]);
 
-        // Reducir inventario
         $inventory->decrement('stock', $item['quantity']);
     }
 
-    // SI ES EFECTIVO → solo crear registro
     if ($request->payment_method === 'cash') {
 
         Payment::create([
             'order_id'       => $order->id,
             'payment_method' => 'cash',
             'status'         => 'pending',
-            'amount'         => $total,
+            'amount'         => $finalTotal,
         ]);
 
         session()->forget('cart');
 
-        return redirect()->route('cliente.pedido.confirmado');
+        return redirect()->route('cliente.pedido.confirmado', ['order' => $order->id]);
+
     }
 
-    // SI ES TARJETA → Stripe
     \Stripe\Stripe::setApiKey(env('STRIPE_SECRET'));
 
     $intent = \Stripe\PaymentIntent::create([
-        'amount'   => $total * 100, // centavos
+        'amount'   => intval($finalTotal * 100),
         'currency' => 'mxn',
         'metadata' => [
             'order_id' => $order->id
@@ -93,10 +100,11 @@ class ClientOrderController extends Controller
 
     return view('customer.orders.stripe-pagar', [
         'clientSecret' => $intent->client_secret,
-        'amount'       => $total,
+        'amount'       => $finalTotal,
         'order_id'     => $order->id
     ]);
 }
+
 
 
     public function confirmarPago(Request $request)
@@ -117,11 +125,16 @@ class ClientOrderController extends Controller
 
         session()->forget('cart');
 
-        return redirect()->route('cliente.pedido.confirmado');
+return redirect()->route('cliente.pedido.confirmado', ['order' => $order->id]);
     }
 
-    public function confirm()
+    public function confirm(Order $order)
     {
-        return view('customer.orders.confirmation');
+        return view('customer.orders.confirmation',compact('order'));
     }
+    public function confirmado(Order $order)
+{
+    return view('customer.orders.confirmado', compact('order'));
+}
+
 }

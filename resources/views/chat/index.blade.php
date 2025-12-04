@@ -6,6 +6,11 @@
     <h1 class="text-2xl font-bold mb-6">💬 Mis conversaciones</h1>
 
     @forelse($conversations as $conv)
+        @php
+            $me = auth()->user();
+            $other = $conv->seller_id === $me->id ? $conv->buyer : $conv->seller;
+        @endphp
+
         <a href="{{ route('chat.show', $conv->id) }}"
            class="block bg-white p-4 shadow rounded mb-3 hover:bg-gray-100">
 
@@ -14,8 +19,17 @@
                     <p class="font-bold">
                         Pedido #{{ $conv->order->id ?? 'N/A' }}
                     </p>
-                    <p class="text-gray-600 text-sm">
-                        Último mensaje: {{ $conv->messages->last()->text ?? 'Sin mensajes' }}
+
+                    <p class="text-gray-800">
+                        👤 Conversación con:
+                        <span class="font-semibold text-sky-700">
+                            {{ $other->name ?? 'Usuario desconocido' }}
+                        </span>
+                    </p>
+
+                    <p class="text-gray-600 text-sm mt-1">
+                        Último mensaje:
+                        {{ $conv->messages->last()->text ?? 'Sin mensajes' }}
                     </p>
                 </div>
 

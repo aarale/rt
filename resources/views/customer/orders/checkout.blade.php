@@ -12,7 +12,7 @@
                 <input type="radio" name="payment_method" value="card" required class="form-radio text-indigo-600">
                 <div>
                     <p class="font-semibold text-gray-800">Tarjeta de crédito/débito</p>
-                    <p class="text-sm text-gray-500">Paga con tu tarjeta de forma segura.</p>
+                    <p class="text-sm text-gray-500">Paga con tu tarjeta de forma segura.  <br>Se suma un 2.5% de el total al utilizar este metodo de pago</p>
                 </div>
             </label>
 

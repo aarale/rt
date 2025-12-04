@@ -68,7 +68,8 @@ class Kernel extends HttpKernel
         'seller' => \App\Http\Middleware\SellerOnly::class,
         'seller.business' => \App\Http\Middleware\SellerMustHaveBusiness::class,
         'customer' => \App\Http\Middleware\CustomerOnly::class,
-        
+        'isPremium' => \App\Http\Middleware\IsPremium::class,
+
 
 
     ];

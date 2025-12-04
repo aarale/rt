@@ -4,6 +4,7 @@ use App\Http\Controllers\Auth\AuthenticatedSessionController;
 
 use App\Http\Controllers\CatalogController;
 
+use App\Http\Controllers\SubscriptionController;
 use App\Http\Controllers\ClientCartController;
 use App\Http\Controllers\ClientOrderController;
 use App\Http\Controllers\ProductController;
@@ -31,6 +32,24 @@ Route::middleware(['auth'])->group(function () {
 
 
 
+Route::middleware(['auth'])->group(function () {
+
+    Route::get('/premium', [SubscriptionController::class, 'index'])->name('premium.index');
+
+    Route::post('/subscribe/create', [SubscriptionController::class, 'create'])->name('subscribe.create');
+
+    Route::get('/subscribe/success', [SubscriptionController::class, 'success'])->name('subscribe.success');
+    Route::get('/subscribe/cancel', [SubscriptionController::class, 'cancel'])->name('subscribe.cancel');
+
+    Route::post('/stripe/webhook', [SubscriptionController::class, 'webhook'])->name('stripe.webhook');
+});
+
+Route::get('/premium-content', function () {
+    return "🎉 Contenido PREMIUM desbloqueado";
+})->middleware('isPremium');
+
+
+
 
 
 Route::get('/login', fn () => view('auth.login'))->name('login');
@@ -53,14 +72,23 @@ Route::post('/carrito/eliminar', [ClientCartController::class, 'remove'])->name(
 
 Route::get('/checkout', [ClientOrderController::class, 'checkout'])->name('cliente.checkout');
 Route::post('/pagar', [ClientOrderController::class, 'pagar'])->name('cliente.pagar');
-Route::get('/confirmacion', [ClientOrderController::class, 'confirm'])->name('cliente.pedido.confirmado');
+//Route::get('/confirmacion', [ClientOrderController::class, 'confirm'])->name('cliente.pedido.confirmado');
+Route::get('/confirmacion/{order}', [ClientOrderController::class, 'confirm'])->name('cliente.pedido.confirmado');
+
+
+Route::get('/seller/orders/{order}/validar', [SellerOrderController::class, 'validarVista']) ->name('seller.orders.validar');
+
+Route::post('/seller/orders/{order}/validar', [SellerOrderController::class, 'validarCodigo'])->name('seller.orders.validarCodigo');
+
+
+
 Route::post('/confirmar-pago', [ClientOrderController::class, 'confirmarPago'])->name('cliente.pago.confirmar');
+//Route::get('/pedido-confirmado/{order}', [ClientOrderController::class, 'confirm'])->name('pedido.confirmado');
+Route::post('/seller/orders/{order}/redeem', [SellerOrderController::class, 'redeem'])->name('seller.orders.redeem');
 
 
-Route::get('/catalogo/categoria/{slug}', [CatalogController::class, 'byCategory'])
-    ->name('catalog.category');
-Route::get('/producto/{slug}', [CatalogController::class, 'show'])
-    ->name('product.show');
+Route::get('/catalogo/categoria/{slug}', [CatalogController::class, 'byCategory'])->name('catalog.category');
+Route::get('/producto/{slug}', [CatalogController::class, 'show'])->name('product.show');
 
 
 

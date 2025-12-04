@@ -51,7 +51,6 @@
             document.getElementById("error-message").textContent = error.message;
             submitBtn.disabled = false;
         } else {
-            // ENVIAR CONFIRMACIÓN AL SERVIDOR
             const orderId = document.getElementById("order_id").value;
 
             fetch("{{ route('cliente.pago.confirmar') }}", {
@@ -66,7 +65,7 @@
                 })
             })
             .then(() => {
-                window.location.href = "{{ route('cliente.pedido.confirmado') }}";
+window.location.href = "/confirmacion/" + orderId;
             });
         }
     });

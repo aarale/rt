@@ -15,6 +15,7 @@ class SellerOrderController extends Controller
         $business = Auth::user()->business;
 
         $orders = Order::where('business_id', $business->id)
+        ->where('status', '!=', 'completed')
             ->with(['buyer','orderItems.product'])
             ->orderBy('created_at', 'desc')
             ->get();
@@ -36,7 +37,10 @@ class SellerOrderController extends Controller
 
     public function show($id)
     {
-        $order = Order::findOrFail($id);
+        $order = Order::where('id', $id)
+    ->where('seller_id', Auth::id())
+    ->firstOrFail();
+
         $this->authorizeOrder($order);
 
         return view('seller.orders.show', compact('order'));
@@ -111,4 +115,51 @@ class SellerOrderController extends Controller
             abort(403, 'No tienes permiso para ver este pedido');
         }
     }
+    public function redeem(Request $request, Order $order)
+{
+    $request->validate([
+        'code' => 'required',
+    ]);
+
+    if ($order->delivery_code !== $request->code) {
+        return back()->with('error', 'Código incorrecto');
+    }
+
+    $order->update([
+        'status' => 'completed',
+        'is_redeemed' => true
+    ]);
+
+    return back()->with('success', 'Pedido entregado exitosamente');
+}
+public function validarVista(Order $order)
+{
+    if ($order->status === 'completed') {
+    return back()->with('error', 'Este pedido ya fue entregado.');
+}
+
+    return view('seller.orders.validar', compact('order'));
+}
+
+public function validarCodigo(Request $request, Order $order)
+{
+    $request->validate([
+        'code' => 'required',
+    ]);
+
+    if ($order->delivery_code !== $request->code) {
+        return back()->with('error', '❌ El código es incorrecto.');
+    }
+
+    $order->update([
+        'status' => 'completed', 
+        'is_redeemed' => true
+    ]);
+if ($order->status === 'completed') {
+    return back()->with('error', 'Este pedido ya está entregado.');
+}
+
+    return back()->with('success', '✅ Pedido entregado correctamente.');
+}
+
 }
